@@ -1,20 +1,26 @@
 import React, { useCallback } from "react";
-import { educationInfo } from "./EducationForm";
+import { educationInfo } from "../../routes/ProvePage";
 
 interface EducationFormRowProps {
   index: number;
   onChange: React.Dispatch<React.SetStateAction<educationInfo[]>>;
-  onFileUpload: React.Dispatch<React.SetStateAction<(File | null)[]>>;
 }
 
 const EducationFormRow: React.FC<EducationFormRowProps> = React.memo(
-  ({ index, onChange, onFileUpload }) => {
+  ({ index, onChange }) => {
     const inputHandler = useCallback(
-      (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+      (event: React.ChangeEvent<HTMLInputElement>) => {
         onChange((state) => {
           const newState = [...state];
-          newState[index][event.target.name as keyof educationInfo] =
-            event.target.value;
+          if (event.target.name === "certificate" && event?.target?.files) {
+            newState[index][event.target.name] = event.target.files[0];
+          } else if (
+            event.target.name === "school" ||
+            event.target.name === "department" ||
+            event.target.name === "major"
+          ) {
+            newState[index][event.target.name] = event.target.value;
+          }
           console.log(newState);
           return newState;
         });
@@ -22,23 +28,26 @@ const EducationFormRow: React.FC<EducationFormRowProps> = React.memo(
       [index, onChange]
     );
 
-    const fileUploadHandler = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files !== null) {
-          const uploadedfile = event.target.files[0];
-          onFileUpload((state) => {
-            const newFiles = [...state];
-            newFiles[index] = uploadedfile;
-            return newFiles;
-          });
-        }
+    const selectHandler = useCallback(
+      (event: React.ChangeEvent<HTMLSelectElement>) => {
+        onChange((state) => {
+          const newState = [...state];
+          if (
+            event.target.name === "degree" ||
+            event.target.name === "graduate"
+          ) {
+            newState[index][event.target.name] = event.target.value;
+          }
+          return newState;
+        });
       },
-      [index, onFileUpload]
+      [index, onChange]
     );
+
     return (
       <tr>
         <th>
-          <select name="degree" onChange={inputHandler}>
+          <select name="degree" onChange={selectHandler}>
             <option value="">선택</option>
             <option value="bachelor">학사</option>
             <option value="master">석사</option>
@@ -59,7 +68,7 @@ const EducationFormRow: React.FC<EducationFormRowProps> = React.memo(
           <input name="major" placeholder="전공" onChange={inputHandler} />
         </th>
         <th>
-          <select name="graduate" onChange={inputHandler}>
+          <select name="graduate" onChange={selectHandler}>
             <option value="">졸업 여부</option>
             <option value="1">졸업</option>
             <option value="0">미졸업</option>
@@ -70,7 +79,7 @@ const EducationFormRow: React.FC<EducationFormRowProps> = React.memo(
             type="file"
             name="certificate"
             accept=".pdf"
-            onChange={fileUploadHandler}
+            onChange={inputHandler}
           />
         </th>
       </tr>
