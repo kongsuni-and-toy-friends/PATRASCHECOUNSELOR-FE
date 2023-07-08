@@ -1,26 +1,16 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import EducationFormRow from "./EducationFormRow";
+import { educationInfo } from "../../routes/ProvePage";
 
-export interface educationInfo {
-  degree: string;
-  school: string;
-  department: string;
-  major: string;
-  graduate: string;
+interface EducationFormProps {
+  userEducationInfo: educationInfo[];
+  setUserEducationInfo: React.Dispatch<React.SetStateAction<educationInfo[]>>;
 }
 
-const ProveForm: React.FC = () => {
-  const [userEducationInfo, setUserEducationInfo] = useState<educationInfo[]>([
-    {
-      degree: "",
-      school: "",
-      department: "",
-      major: "",
-      graduate: "",
-    },
-  ]);
-  const [uploadedFileList, setUploadedFileList] = useState<(File | null)[]>([]);
-
+const EducationForm: React.FC<EducationFormProps> = ({
+  userEducationInfo,
+  setUserEducationInfo,
+}) => {
   const addUserEducationInfo = useCallback(() => {
     setUserEducationInfo((state) => {
       return state.concat({
@@ -29,28 +19,15 @@ const ProveForm: React.FC = () => {
         department: "",
         major: "",
         graduate: "",
+        certificate: null,
       });
     });
+  }, [setUserEducationInfo]);
 
-    setUploadedFileList((state) => [...state, null]);
-  }, []);
-
-  const bodyRef = useRef(null);
-  // const changeHandler = useCallback(
-  //   (index: number) =>
-  //     (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-  //       setUserEducationInfo((state) => {
-  //         const newState = [...state];
-  //         newState[index][event.target.name] = event.target.value;
-  //         return newState;
-  //       });
-  //     },
-  //   []
-  // );
   return (
     <>
       <h1>학력 사항</h1>
-      <table className="border-collapse border-[1px] border-black [&_th]:border-[1px] [&_th]:border-black">
+      <table className="border-collapse border-[1px] border-black [&_th]:border-[1px] [&_th]:border-black w-full">
         <thead>
           <tr>
             <th>학위</th>
@@ -61,23 +38,21 @@ const ProveForm: React.FC = () => {
             <th>증명서 사본</th>
           </tr>
         </thead>
-        <tbody ref={bodyRef}>
+        <tbody>
           {userEducationInfo.map((_, index) => {
             return (
               <EducationFormRow
                 key={index}
                 index={index}
                 onChange={setUserEducationInfo}
-                onFileUpload={setUploadedFileList}
               />
             );
           })}
         </tbody>
       </table>
       <button onClick={addUserEducationInfo}>추가하기</button>
-      <button onClick={() => console.dir(bodyRef.current)}>조회</button>
     </>
   );
 };
 
-export default ProveForm;
+export default EducationForm;
