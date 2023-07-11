@@ -1,6 +1,5 @@
 import { useLocation } from "react-router-dom";
 import SignUpForm from "../Components/SignUp/SignUpForm";
-import AgreeForm from "../Components/Agree/AgreeForm";
 
 const SignUpPage: React.FC = (props) => {
   console.log(props);
@@ -10,7 +9,6 @@ const SignUpPage: React.FC = (props) => {
     <>
       <h1>회원가입</h1>
       <SignUpForm />
-      <AgreeForm />
     </>
   );
 };

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AgreeForm from "../Agree/AgreeForm";
+import request from "../libs/axios";
 
 interface infoObj {
   email: string;
@@ -8,7 +10,9 @@ interface infoObj {
   name: string;
   birthDate: Date;
   gender: string;
-  phone: string;
+  phone1: string;
+  phone2: string;
+  phone3: string;
   address: string;
   postcode: string;
   detailAddress: string;
@@ -67,7 +71,9 @@ const SignUpForm: React.FC = () => {
     name: "",
     birthDate: new Date(),
     gender: "",
-    phone: "",
+    phone1: "",
+    phone2: "",
+    phone3: "",
     address: "",
     postcode: "",
     detailAddress: "",
@@ -76,11 +82,28 @@ const SignUpForm: React.FC = () => {
 
   const detailAddressRef = useRef(null);
   const navigate = useNavigate();
+  const [duplicationCheckMent, setDuplicateCheckMent] = useState<string>("");
+
   const signUpHandler = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       console.log(info);
-      // navigate("/signup/success");
+      try {
+        const res = await request.post(`/v2/auth/register`, {
+          name: info.name,
+          email: info.email,
+          gender: info.gender,
+          birth: info.birthDate,
+          phone: `${info.phone1}-${info.phone2}-${info.phone3}`,
+          address: `${info.address} ${info.detailAddress} ${info.extraAddress}`,
+          pw: info.password,
+        });
+
+        navigate("/signup/success");
+        console.log(res);
+      } catch (error) {
+        console.log("에러:", error);
+      }
     },
     [navigate, info]
   );
@@ -88,11 +111,6 @@ const SignUpForm: React.FC = () => {
   const changeHandler = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setInfo((state) => {
-        if (event.target.name === "birthDate")
-          return {
-            ...state,
-            [event.target.name]: new Date(event.target.value),
-          };
         return {
           ...state,
           [event.target.name]: event.target.value,
@@ -158,6 +176,19 @@ const SignUpForm: React.FC = () => {
     }).open();
   }, []);
 
+  const checkEmailDuplication = useCallback(async () => {
+    try {
+      const res = await request.get(`/v2/auth/dupcheck?email=${info.email}`);
+      if (res.data.result) {
+        setDuplicateCheckMent("사용 가능합니다.");
+      } else {
+        setDuplicateCheckMent("이미 가입된 계정입니다.");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [info.email]);
+
   return (
     <form
       className="[&_input]:border-b-[1px] [&_input]:border-black [&_input]:outline-none"
@@ -166,8 +197,11 @@ const SignUpForm: React.FC = () => {
       <div>
         <label htmlFor="email">이메일</label>
         <input type="text" id="email" name="email" onChange={changeHandler} />
-        <button type="button">중복 확인</button>
+        <button type="button" onClick={checkEmailDuplication}>
+          중복 확인
+        </button>
       </div>
+      <div>{duplicationCheckMent}</div>
       <div>
         <label htmlFor="password">비밀번호</label>
         <input
@@ -217,11 +251,28 @@ const SignUpForm: React.FC = () => {
       <div>
         <label htmlFor="phone">전화번호</label>
         <input
-          type="tel"
-          id="phone"
-          name="phone"
-          pattern="[0-9]{3}-[0-9]{4}-[0-9]{4}"
+          type="number"
+          id="phone1"
+          name="phone1"
           onChange={changeHandler}
+          required
+        />
+        <span>-</span>
+        <input
+          type="number"
+          id="phone2"
+          name="phone2"
+          onChange={changeHandler}
+          maxLength={4}
+          required
+        />
+        <span>-</span>
+        <input
+          type="number"
+          id="phone3"
+          name="phone3"
+          onChange={changeHandler}
+          maxLength={4}
           required
         />
       </div>
@@ -231,6 +282,7 @@ const SignUpForm: React.FC = () => {
           name="postcode"
           id="postcode"
           value={info.postcode}
+          onChange={changeHandler}
         />
         <button type="button" onClick={addressHandler}>
           찾기
@@ -239,8 +291,9 @@ const SignUpForm: React.FC = () => {
       <div>
         <input
           placeholder="도로명 주소"
-          name="roadAddress"
+          name="address"
           value={info.address}
+          onChange={changeHandler}
         />
       </div>
       <div>
@@ -254,6 +307,7 @@ const SignUpForm: React.FC = () => {
       <div>
         <input name="extraAddress" value={info.extraAddress} disabled />
       </div>
+      <AgreeForm />
       <button>회원가입</button>
     </form>
   );

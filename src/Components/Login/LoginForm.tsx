@@ -4,6 +4,7 @@ import { shallow } from "zustand/shallow";
 import { createPortal } from "react-dom";
 import Backdrop from "../UI/Backdrop";
 import KakaoButton from "../Kakao/KakaoButton";
+import request from "../libs/axios";
 
 interface infoObj {
   email: string;
@@ -18,7 +19,7 @@ const LoginForm: React.FC = () => {
     shallow
   );
   const onLogin = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       login(info.email);
       closeLoginForm();
